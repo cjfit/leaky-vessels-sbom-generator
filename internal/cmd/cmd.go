@@ -31,6 +31,11 @@ import (
 
 var log = common.GetLogger()
 
+type DockerfileAnalysisResult struct {
+    DockerfilePath string
+    BaseImages     map[string]string // Maps base images to their versions
+}
+
 func AnalyzeImage(imageName string, imageSource string, opts common.Options) (int, []common.Result, error) {
 	var da analysis.Analysis
 	var code int
@@ -86,40 +91,45 @@ func AutoAnalyzeImage(imageName string, opts common.Options) (int, []common.Resu
 	return code, res, err
 }
 
-func AnalyzeDockerfile(dockerfilePath string, opts common.Options) (int, []common.Result, error) {
-	var da analysis.Analysis
-	var code int
-	var err error
-	var res []common.Result
+func AnalyzeDockerfile(dockerfilePath string, opts common.Options) (int, DockerfileAnalysisResult, error) {
+    var da analysis.Analysis
 
+    var code int
+    var err error
+	
 	df := dockerfile.DockerfileAnalyzer{ DockerfilePath: dockerfilePath }
 	da = &df
-	code, res, err = analysis.RunInterface(da, opts)
-	if code == 2 {
-		return code, nil, err
-	}
+    code, _, err = analysis.RunInterface(da, opts) // Assuming RunInterface only needs to analyze the structure, not the content
+    
+	if code != 0 {
+        return code, DockerfileAnalysisResult{}, err
+    }
 
-	if opts.AnalyzeBaseImage {
-		log.Debug("Running base image analysis.")
-		data := df.GetDockerfileContents()
-		baseImages, err := ast.GetBaseImages(data)
-		if err != nil {
-			errMsg := fmt.Sprintf("Failed to extract base images from %s.", dockerfilePath)
-			log.Error(errMsg)
-			return 2, nil, errors.New(errMsg)
-		}
+    result := DockerfileAnalysisResult{
+        DockerfilePath: dockerfilePath,
+        BaseImages:     make(map[string]string),
+    }
 
-		for _, base := range baseImages {
-			code, baseRes, err := AutoAnalyzeImage(base, opts)
-			if err != nil {
-				errMsg := fmt.Sprintf("%s base image of %s auto-analysis failed.", base, dockerfilePath)
-				log.Error(errMsg)
-				return code, res, err
-			}
+    if opts.AnalyzeBaseImage {
+        log.Debug("Running base image analysis.")
+        data := df.GetDockerfileContents()
+        baseImages, err := ast.GetBaseImages(data)
+        if err != nil {
+            errMsg := fmt.Sprintf("Failed to extract base images from %s.", dockerfilePath)
+            log.Error(errMsg)
+            return 2, DockerfileAnalysisResult{}, errors.New(errMsg)
+        }
 
-			res = append(res, baseRes...)
-		} 
-	}
-
-	return code, res, err
+        for _, base := range baseImages {
+            // Assuming AutoAnalyzeImage provides the version, if not, defaulting to "none"
+            _, _, err := AutoAnalyzeImage(base, opts)
+            if err != nil {
+                errMsg := fmt.Sprintf("%s base image of %s auto-analysis failed.", base, dockerfilePath)
+                log.Error(errMsg)
+                return 2, DockerfileAnalysisResult{}, err
+            }
+            result.BaseImages[base] = "none" // Assuming version handling is elsewhere
+        } 
+    }
+    return code, result, nil
 }

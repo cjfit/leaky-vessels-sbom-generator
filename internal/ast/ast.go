@@ -155,5 +155,6 @@ func GetBaseImages(data string) ([]string, error) {
 		}
 	}
 
+	log.Info(resolvedNames)
 	return resolvedNames, nil
 }
