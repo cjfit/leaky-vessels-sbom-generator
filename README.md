@@ -27,4 +27,6 @@ This is typically found in SCA tools like Snyk or Semgrep, or platforms like Doc
   - `go run cmd/sbom-generator/sbom_generator.go dockerfile --base`
 
 
-### Testing
+### Support/Security
+
+1. No expectation of support is provided with this and I assume no liability for running it. 
