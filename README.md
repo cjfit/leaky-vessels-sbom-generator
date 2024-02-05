@@ -31,4 +31,5 @@ This is typically found in SCA tools like Snyk or Semgrep, or platforms like Doc
 
 1. No expectation of support is provided with this and I assume no liability for running it.
 
-<img width="743" alt="Screen Shot 2024-01-21 at 3 50 39 PM" src="https://github.com/cjfit/leaky-vessels-sbom-generator/assets/7490790/68b53e10-7f92-4269-887f-b4ac8d371368">
+Example output:
+![Screen Shot 2024-02-04 at 9 28 19 PM](https://github.com/cjfit/leaky-vessels-sbom-generator/assets/7490790/a92dd435-546e-4121-bf3c-0337dba59ad5)
