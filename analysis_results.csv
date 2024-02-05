@@ -1,1 +1,3 @@
 demo-repository/Dockerfile,debian:sid-slim,none
+supercoolrepo/Dockerfile,node:18-bullseye,none
+supercoolrepo/Dockerfile,node:18-alpine,none

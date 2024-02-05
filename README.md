@@ -15,8 +15,10 @@ This is typically found in SCA tools like Snyk or Semgrep, or platforms like Doc
 
 ### Quickstart
 
+
 1. Collect Dockerfiles from Github:
   - Navigate to `gh_crawler/src/gh_enumerator` and run `npm install`. 
+  - Set `GH_TOKEN` and `TARGET_ORG` to your Github access token and organization to target.
   - I wasn't able to get Snyk's bash script working so improvising with JS.
   - Run `node sbom_generator_github_crawler.js`
 2. Verify outputs
