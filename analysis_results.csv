@@ -1,4 +1,1 @@
-DockerfilePath,BaseImage,Version
-examples/supercoolrepo/Dockerfile,node:18-bullseye,none
-examples/supercoolrepo/Dockerfile,node:18-alpine,none
-examples/demo-repository/Dockerfile,debian:sid-slim,none
+demo-repository/Dockerfile,debian:sid-slim,none

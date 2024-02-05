@@ -59,6 +59,7 @@ export async function script(
   //   hasRepoScope = true;
   // }
 
+
   if (ignoreArchived && repository.archived) {
     octokit.log.warn(`IGNORE repository is archived`);
     return;

@@ -1,57 +1,27 @@
-/*
- * SBOM Generator
- * by cjfit
- * 
- * Forked from: https://github.com/snyk/leaky-vessels-static-detector/
- * © 2024 Snyk Limited
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package main
 
- package main
+import (
+    "encoding/csv"
+    "flag"
+    "fmt"
+    "os"
+    "static-detector/internal/cmd"
+    "static-detector/internal/common"
+)
 
- import (
-	 "encoding/csv"
-	 "flag"
-	 "fmt"
-	 "os"
-	 "static-detector/internal/cmd"
-	 "static-detector/internal/common"
+var (
+    logger = common.GetLogger()
 
- )
- 
- var (
+    disableListPlaceholder []string
+)
 
-	logger = common.GetLogger()
-
-	disableListPlaceholder []string
-
- )
-/*  // Placeholder for the actual analysis logic
- func AnalyzeDockerfile(dockerfilePath string, analyzeBase bool) (map[string]string, error) {
-	 // Placeholder response
-	 return map[string]string{"Path": dockerfilePath, "Analysis": "Success", "BaseImageAnalyzed": fmt.Sprintf("%t", analyzeBase)}, nil
- } */
-
- type DockerfileAnalysisResult struct {
+type DockerfileAnalysisResult struct {
     DockerfilePath string
     BaseImages     map[string]string // Maps base images to their versions
 }
 
- func main() {
-	
-	dockerfileCmd := flag.NewFlagSet("dockerfile", flag.ExitOnError)
-    csvFilePath := dockerfileCmd.String("csv", "", "Path to the CSV file containing Dockerfile paths")
+func main() {
+    dockerfileCmd := flag.NewFlagSet("dockerfile", flag.ExitOnError)
     analyzeBase := dockerfileCmd.Bool("base", false, "Whether to analyze base image")
 
     if len(os.Args) < 2 {
@@ -67,12 +37,7 @@
         os.Exit(1)
     }
 
-    if *csvFilePath == "" {
-        fmt.Println("CSV file path is required")
-        os.Exit(1)
-    }
-
-    file, err := os.Open(*csvFilePath)
+    file, err := os.Open("./gh_crawler/src/gh_enumerator/gh_data/dockerfiles_paths.csv")
     if err != nil {
         fmt.Printf("Failed to open CSV file: %v\n", err)
         os.Exit(1)
@@ -80,6 +45,13 @@
     defer file.Close()
 
     reader := csv.NewReader(file)
+    // Skip the first header line by reading it and not using it
+    if _, err := reader.Read(); err != nil {
+        fmt.Printf("Failed to read the header line from CSV file: %v\n", err)
+        os.Exit(1)
+    }
+
+    // Read the rest of the data after the header
     dockerfiles, err := reader.ReadAll()
     if err != nil {
         fmt.Printf("Failed to read CSV file: %v\n", err)
@@ -88,18 +60,21 @@
 
     // Initialize slice to store results for all Dockerfiles
     var results [][]string
-    results = append(results, []string{"DockerfilePath", "BaseImage", "Version"}) // Header
+    // Optionally, if you want to include a header in the output CSV, uncomment the next line
+    // results = append(results, []string{"DockerfilePath", "BaseImage", "Version"}) // Header for output CSV
 
     // Analyze Dockerfiles
     for _, record := range dockerfiles {
-        path := record[0]
+		subdir_path := "./gh_crawler/src/gh_enumerator/gh_data"
+		simple_path := record[0] +"/"+ record[1]
+        path := subdir_path + "/" + record[0] +"/"+ record[1]
         if _, err := os.Stat(path); os.IsNotExist(err) {
             fmt.Printf("File does not exist: %s\n", path)
             continue
         }
 
         opts := common.Options{
-            DisableRules: &disableListPlaceholder, // Assuming this is defined somewhere
+            DisableRules:    &disableListPlaceholder, // Assuming this is defined somewhere
             AnalyzeBaseImage: *analyzeBase,
         }
 
@@ -112,7 +87,7 @@
 
         // Append the analysis result for each Dockerfile to results slice
         for baseImage, version := range analysisResult.BaseImages {
-            results = append(results, []string{analysisResult.DockerfilePath, baseImage, version})
+            results = append(results, []string{simple_path, baseImage, version})
         }
     }
 

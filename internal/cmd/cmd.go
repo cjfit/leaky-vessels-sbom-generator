@@ -88,6 +88,7 @@ func AutoAnalyzeImage(imageName string, opts common.Options) (int, []common.Resu
 		return 3, res, err
 	}
 
+		
 	return code, res, err
 }
 
