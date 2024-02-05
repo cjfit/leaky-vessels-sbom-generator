@@ -35,3 +35,6 @@ cache
 gh_data
 node_modules
 .DS_Storenode_modules/
+
+# Ignore gh_data
+gh_data/
